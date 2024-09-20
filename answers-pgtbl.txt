@@ -1,0 +1,30 @@
+Which other xv6 system call(s) could be made faster using this shared page? Explain how.
+使用此共享页面可以更快地进行哪些其他 xv6 系统调用？请解释如何操作。
+
+uptime()：
+概述: uptime() 返回系统启动以来的滴答数。该值是只读的，可以通过一个共享的只读页面提供给用户空间，从而避免每次调用时进入内核。
+操作: 在共享页面中存储系统的滴答计数器值，用户空间的 uptime() 函数可以直接读取这个共享页面中的值。
+
+getpid()：
+概述: getpid() 返回当前进程的 ID (PID)。ID 一般在进程创建时确定，并且通常不会改变，可以通过共享的只读页面暴露给用户空间。
+操作: 在 usyscall 结构中增加一个字段来存储 PID，用户空间的 getpid() 函数可以从共享页面直接读取这个值。
+
+
+Explain the output of vmprint in terms of Fig 3-4 from the text. 
+What does page 0 contain? What is in page 2? 
+When running in user mode, could the process read/write the memory mapped by page 1? 
+What does the third to last page contain?
+根据文本中的图 3-4 解释 vmprint的输出。
+第 0 页包含什么？
+第 2 页有什么？
+在用户模式下运行时，进程是否可以读取/写入第 1 页映射的内存？
+倒数第三页包含什么？
+
+在exec.c函数中，在// Allocate two pages at the next page boundary.
+前后分别调用vmprint()来打印页表，发现分配的栈和保护页是page2和page3，其中page2没有user权限，因此page2是guard page，page3是stack，剩下的页面是在创建这两个页面之前就有的，结合if((pagetable = proc_pagetable(p)) == 0)，proc_pagetable()函数的代码和kernel.asm，确认从最后一个页面往前分别是trampoline，trapframe和usyscall，而第0个和第1个页面是text和data，也就是
+// Load program into memory.
+注释下方的那一段代码。
+    
+第0页的权限都是用户可读/用户可执行(0x1b)
+第1页的权限都是用户可读/用户可写(0x17)
+倒数第三页是第一个实验中实现的共享页面
